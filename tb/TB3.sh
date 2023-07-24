@@ -2,7 +2,7 @@
 
 main="/home"
 ###
-fasta="$main/Genome/GCF_000195955.2_ASM19595v2_genomic.fna"
+fasta="$main/TBwiz/TB-wiz-main/Genome/GCF_000195955.2_ASM19595v2_genomic.fna"
 Sample="$main/Sample"
 mkdir $main/Result
 mkdir $main/Result/Analysis
@@ -43,7 +43,7 @@ do
 file_basename=$(basename "$file")
 file_prefix="${file_basename%*1_paired.fastq}" 
 file2="${file_prefix}2_paired.fastq"
-bwa mem -t $threads $main/Genome/TBC $file $main/Result/Analysis/Trimming/$file2 > $main/Result/Analysis/SAM/$file_prefix.sam
+bwa mem -t $threads $main/TBwiz/TB-wiz-main/Genome/TBC $file $main/Result/Analysis/Trimming/$file2 > $main/Result/Analysis/SAM/$file_prefix.sam
 done
 
  
@@ -91,7 +91,7 @@ samtools mpileup -B -f $fasta $string > $main/Result/Analysis/Mpileup/sample.mpi
 java -jar $main/Tools/VarScan.v2.3.9.jar mpileup2cns  $main/Result/Analysis/Mpileup/sample.mpileup  --variants --output-vcf > $main/Result/Analysis/VCF/sample.vcf
 
 bcftools reheader -s $main/Result/Analysis/Mpileup/name.txt -o $main/Result/Analysis/VCF/sample1.vcf $main/Result/Analysis/VCF/sample.vcf 
-bcftools reheader -f $main/Genome/GCF_000195955.2_ASM19595v2_genomic.fna.fai -o $main/Result/Analysis/VCF/sample2.vcf $main/Result/Analysis/VCF/sample1.vcf
+bcftools reheader -f $main/TBwiz/TB-wiz-main/Genome/GCF_000195955.2_ASM19595v2_genomic.fna.fai -o $main/Result/Analysis/VCF/sample2.vcf $main/Result/Analysis/VCF/sample1.vcf
 MULTISAMPLEVCF="$main/Result/Analysis/VCF/sample2.vcf"
 for sample in $(bcftools query -l "$MULTISAMPLEVCF"); do
     echo "$sample"
