@@ -37,7 +37,7 @@ def resistance(nome)
   $stdout.reopen(output_file, "w")
 annotated=vcf2(nome)
 n=0
-dbresistance=leggi_matrice("/home/tb/resistancetb.txt")
+dbresistance=leggi_matrice("/home/TBwiz/TB-wiz-main/tb/resistancetb.txt")
 dbresistance.each{|i|
   gene=i[0]
   mutation=i[1]
