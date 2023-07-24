@@ -97,9 +97,9 @@ for sample in $(bcftools query -l "$MULTISAMPLEVCF"); do
     echo "$sample"
     bcftools view -c 1 -s $sample $MULTISAMPLEVCF -Oz -o "$main/Result/Analysis/$sample/$sample.vcf"
     fast-lineage-caller $main/Result/Analysis/$sample/$sample.vcf > $main/Result/$sample/$sample.lineage.txt
-    bcftools annotate --rename-chrs $main/tb/annotate $main/Result/Analysis/$sample/$sample.vcf > $main/Result/Analysis/$sample/$sample.corrected.vcf
+    bcftools annotate --rename-chrs $main/TBwiz/TB-wiz-main/tb/annotate $main/Result/Analysis/$sample/$sample.vcf > $main/Result/Analysis/$sample/$sample.corrected.vcf
     java -jar  $main/Tools/snpEff/snpEff.jar -s $main/Result/Analysis/$sample/$sample.txt -v Mycobacterium_tuberculosis_h37rv $main/Result/Analysis/$sample/$sample.corrected.vcf > $main/Result/Analysis/$sample/$sample.annotated.vcf
-    /usr/bin/ruby $main/tb/resistancetb.sh $main/Result/Analysis/$sample/$sample.annotated.vcf 
+    /usr/bin/ruby $main/TBwiz/TB-wiz-main/tb/resistancetb.sh $main/Result/Analysis/$sample/$sample.annotated.vcf 
     cp $main/Result/Analysis/$sample/$sample.annotated.vcf.resistance.txt $main/Result/$sample/$sample.resistance.txt
 done
 
