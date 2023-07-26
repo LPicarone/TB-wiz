@@ -1,0 +1,8 @@
+Result/Analysis/Trimming/FastQC
+Result/Analysis/Trimming/MultiQC
+Result/Analysis/SAM
+Result/Analysis/BAM/BAM
+Result/Analysis/BAM/noduplicates
+Result/Analysis/BAM/BAM_Sorted
+Result/Analysis/VCF
+Result/Analysis/Mpileup
