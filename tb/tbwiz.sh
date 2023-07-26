@@ -94,7 +94,7 @@ process_bam() {
         file_prefix="${file_basename%.bam}" 
         samtools sort -@ "$threads" -o "$main/Result/Analysis/BAM/BAM_Sorted/$file_prefix.sorted.bam" "$main/Result/Analysis/BAM/BAM/$file_prefix.bam" || echo "Error occurred during BAM sorting for file: $file"
         samtools index "$main/Result/Analysis/BAM/BAM_Sorted/$file_prefix.sorted.bam" || echo "Error occurred while indexing BAM: $file"
-        java -jar /root/Scaricati/gatk-4.3.0.0/gatk-package-4.3.0.0-local.jar MarkDuplicates -I "$main/Result/Analysis/BAM/BAM_Sorted/$file_prefix.sorted.bam" -O "$main/Result/Analysis/BAM/noduplicates/$file_prefix.nodup.bam" -METRICS_FILE "$main/Result/Analysis/BAM/noduplicates/${file_prefix}_metrics.txt" || echo "Error occurred during BAM deduplication for file: $file"
+        java -jar /home/Tools/picard.jar MarkDuplicates -I "$main/Result/Analysis/BAM/BAM_Sorted/$file_prefix.sorted.bam" -O "$main/Result/Analysis/BAM/noduplicates/$file_prefix.nodup.bam" -METRICS_FILE "$main/Result/Analysis/BAM/noduplicates/${file_prefix}_metrics.txt" || echo "Error occurred during BAM deduplication for file: $file"
         samtools index "$main/Result/Analysis/BAM/noduplicates/$file_prefix.nodup.bam" || echo "Error occurred while indexing deduplicated BAM: $file"
         mkdir -p "$main/Result/$file_prefix"
         /home/Tools/qualimap_v2.3/qualimap bamqc -bam "$main/Result/Analysis/BAM/noduplicates/$file_prefix.nodup.bam" -outdir "$main/Result/$file_prefix/Qualimap" || echo "Error occurred during Qualimap analysis for file: $file"
