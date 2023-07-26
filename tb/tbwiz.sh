@@ -49,7 +49,7 @@ perform_trimming() {
         file2="${file_prefix}2.fastq.gz"
         mkdir -p "$main/Result/Analysis/$file_prefix"
         # Add error handling for the trimming process
-        if ! java -jar "$main/Tools/Trimmomatic-0.39/trimmomatic-0.39.jar" PE -phred33 -threads "$threads" -trimlog "$main/Result/Analysis/Trimming/$file_prefix.txt" "$file" "$Sample/$file2" "$main/Result/Analysis/Trimming/${file_prefix}1_paired.fastq" "$main/Result/Analysis/Trimming/${file_prefix}1_unpaired.fastq" "$main/Result/Analysis/Trimming/${file_prefix}2_paired.fastq" "$main/Result/Analysis/Trimming/${file_prefix}2_unpaired.fastq" SLIDINGWINDOW:20:30 MINLEN:20; then
+        if ! java -jar /home/Tools/Trimmomatic-0.39/trimmomatic-0.39.jar PE -phred33 -threads "$threads" -trimlog "$main/Result/Analysis/Trimming/$file_prefix.txt" "$file" "$Sample/$file2" "$main/Result/Analysis/Trimming/${file_prefix}1_paired.fastq" "$main/Result/Analysis/Trimming/${file_prefix}1_unpaired.fastq" "$main/Result/Analysis/Trimming/${file_prefix}2_paired.fastq" "$main/Result/Analysis/Trimming/${file_prefix}2_unpaired.fastq" SLIDINGWINDOW:20:30 MINLEN:20; then
             echo "Error occurred during trimming for file: $file"
             exit 1
         fi
@@ -76,7 +76,7 @@ perform_sam_alignment() {
         file_basename=$(basename "$file")
         file_prefix="${file_basename%*1_paired.fastq}" 
         file2="${file_prefix}2_paired.fastq"
-        bwa mem -t "$threads" /root/Scrivania/Tbnew/Genome/TBC "$file" "$main/Result/Analysis/Trimming/$file2" > "$main/Result/Analysis/SAM/$file_prefix.sam" || echo "Error occurred during SAM alignment for file: $file"
+        bwa mem -t "$threads" /home/TBwiz/TB-wiz-main/Genome/TBC "$file" "$main/Result/Analysis/Trimming/$file2" > "$main/Result/Analysis/SAM/$file_prefix.sam" || echo "Error occurred during SAM alignment for file: $file"
     done
 }
 
@@ -97,7 +97,7 @@ process_bam() {
         java -jar /root/Scaricati/gatk-4.3.0.0/gatk-package-4.3.0.0-local.jar MarkDuplicates -I "$main/Result/Analysis/BAM/BAM_Sorted/$file_prefix.sorted.bam" -O "$main/Result/Analysis/BAM/noduplicates/$file_prefix.nodup.bam" -METRICS_FILE "$main/Result/Analysis/BAM/noduplicates/${file_prefix}_metrics.txt" || echo "Error occurred during BAM deduplication for file: $file"
         samtools index "$main/Result/Analysis/BAM/noduplicates/$file_prefix.nodup.bam" || echo "Error occurred while indexing deduplicated BAM: $file"
         mkdir -p "$main/Result/$file_prefix"
-        qualimap bamqc -bam "$main/Result/Analysis/BAM/noduplicates/$file_prefix.nodup.bam" -outdir "$main/Result/$file_prefix/Qualimap" || echo "Error occurred during Qualimap analysis for file: $file"
+        /home/Tools/qualimap_v2.3/qualimap bamqc -bam "$main/Result/Analysis/BAM/noduplicates/$file_prefix.nodup.bam" -outdir "$main/Result/$file_prefix/Qualimap" || echo "Error occurred during Qualimap analysis for file: $file"
     done
 }
 
@@ -121,19 +121,19 @@ generate_vcf() {
 
     samtools mpileup -B -f "$fasta" $string > "$main/Result/Analysis/Mpileup/sample.mpileup" || echo "Error occurred during Mpileup"
 
-    java -jar "$main/Tools/VarScan.v2.3.9.jar" mpileup2cns "$main/Result/Analysis/Mpileup/sample.mpileup" --variants --output-vcf --min-coverage 20 --min-reads2 10 --min-avg-qual 30 > "$main/Result/Analysis/VCF/sample.vcf" || echo "Error occurred during VCF generation"
+    java -jar /home/Tools/VarScan.v2.3.9.jar mpileup2cns "$main/Result/Analysis/Mpileup/sample.mpileup" --variants --output-vcf --min-coverage 20 --min-reads2 10 --min-avg-qual 30 > "$main/Result/Analysis/VCF/sample.vcf" || echo "Error occurred during VCF generation"
 
     bcftools reheader -s "$main/Result/Analysis/Mpileup/name.txt" -o "$main/Result/Analysis/VCF/sample1.vcf" "$main/Result/Analysis/VCF/sample.vcf" || echo "Error occurred during VCF reheader"
-    bcftools reheader -f "/root/Scrivania/Tbnew/Genome/GCF_000195955.2_ASM19595v2_genomic.fna.fai" -o "$main/Result/Analysis/VCF/sample2.vcf" "$main/Result/Analysis/VCF/sample1.vcf" || echo "Error occurred during VCF reheader"
+    bcftools reheader -f "/home/TBwiz/TB-wiz-main/Genome/GCF_000195955.2_ASM19595v2_genomic.fna.fai" -o "$main/Result/Analysis/VCF/sample2.vcf" "$main/Result/Analysis/VCF/sample1.vcf" || echo "Error occurred during VCF reheader"
 
     MULTISAMPLEVCF="$main/Result/Analysis/VCF/sample2.vcf"
     for sample in $(bcftools query -l "$MULTISAMPLEVCF"); do
         echo "$sample"
         bcftools view -c 1 -s "$sample" "$MULTISAMPLEVCF" -Oz -o "$main/Result/Analysis/$sample/$sample.vcf" || echo "Error occurred during VCF subsetting for sample: $sample"
         fast-lineage-caller "$main/Result/Analysis/$sample/$sample.vcf" > "$main/Result/$sample/$sample.lineage.txt" || echo "Error occurred during lineage calling for sample: $sample"
-        bcftools annotate --rename-chrs /root/Scrivania/Tesi/tb/annotate "$main/Result/Analysis/$sample/$sample.vcf" > "$main/Result/Analysis/$sample/$sample.corrected.vcf" || echo "Error occurred during VCF annotation for sample: $sample"
-        java -jar "$main/Tools/snpEff/snpEff.jar" -s "$main/Result/Analysis/$sample/$sample.txt" -v Mycobacterium_tuberculosis_h37rv "$main/Result/Analysis/$sample/$sample.corrected.vcf" > "$main/Result/Analysis/$sample/$sample.annotated.vcf" || echo "Error occurred during VCF annotation with snpEff for sample: $sample"
-        /usr/bin/ruby "/root/Scrivania/Tesi/tb/resistancetb.sh" "$main/Result/Analysis/$sample/$sample.annotated.vcf" || echo "Error occurred during resistance prediction for sample: $sample"
+        bcftools annotate --rename-chrs /home/TBwiz/TB-wiz-main/tb/annotate "$main/Result/Analysis/$sample/$sample.vcf" > "$main/Result/Analysis/$sample/$sample.corrected.vcf" || echo "Error occurred during VCF annotation for sample: $sample"
+        java -jar /home/Tools/snpEff/snpEff.jar -s "$main/Result/Analysis/$sample/$sample.txt" -v Mycobacterium_tuberculosis_h37rv "$main/Result/Analysis/$sample/$sample.corrected.vcf" > "$main/Result/Analysis/$sample/$sample.annotated.vcf" || echo "Error occurred during VCF annotation with snpEff for sample: $sample"
+        /usr/bin/ruby /home/TBwiz/TB-wiz-main/tb/resistancetb.sh "$main/Result/Analysis/$sample/$sample.annotated.vcf" || echo "Error occurred during resistance prediction for sample: $sample"
         cp "$main/Result/Analysis/$sample/$sample.annotated.vcf.resistance.txt" "$main/Result/$sample/$sample.resistance.txt" || echo "Error occurred while copying resistance file for sample: $sample"
     done
 }
@@ -168,7 +168,7 @@ check_main_path
 check_sample_path
 
 fasta="/home/TBwiz/TB-wiz-main/Genome/GCF_000195955.2_ASM19595v2_genomic.fna"
-directories_file="/root/Scrivania/Tbnew/directories.txt"
+directories_file="/home/TBwiz/TB-wiz-main/Genome/directories.txt"
 # Call the functions
 create_directories
 perform_trimming
