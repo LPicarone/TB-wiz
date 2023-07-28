@@ -165,7 +165,7 @@ check_main_path
 check_sample_path
 
 fasta="/home/TBwiz/TB-wiz-main/Genome/GCF_000195955.2_ASM19595v2_genomic.fna"
-directories_file="/home/prova/directories.txt"
+directories_file="/home/TBwiz/TB-wiz-main/Genome/directories.txt"
 # Call the functions
 create_directories
 perform_trimming
